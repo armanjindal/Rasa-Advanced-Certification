@@ -30,7 +30,7 @@ class ActionSessionStart(Action):
         return "action_session_start"
 
     @staticmethod
-    async def fetch_slots(tracker: Tracker) -> List[EventType]:
+    async def fetch_slots(tracker: Tracker, dispatcher : CollectingDispatcher) -> List[EventType]:
         """Add user profile to the slots if it is not set."""
 
         slots = []
@@ -49,8 +49,11 @@ class ActionSessionStart(Action):
             else:    
                 # Make an actual call to Snow API.
                 user_profile = await snow.get_user_profile(id)
-
+                if user_profile.get("error"):
+                    dispatcher.utter_message(f"{user_profile.get('error')}")
+                    return slots 
             slots.append(SlotSet(key="user_profile", value=user_profile))
+            slots.append(SlotSet(key="user_email", value=user_profile.get("email")))
 
         if user_name is None:
             slots.append(SlotSet(key="user_name", value=user_profile.get("name")))
@@ -70,7 +73,8 @@ class ActionSessionStart(Action):
 
         # any slots that should be carried over should come after the
         # `session_started` event
-        newEvents = await self.fetch_slots(tracker)
+        print("THIS RAN")
+        newEvents = await self.fetch_slots(tracker, dispatcher)
         events.extend(newEvents)
 
         # an `action_listen` should be added at the end as a user message follows
@@ -90,7 +94,7 @@ class IncidentStatus(Action):
     ) -> List[EventType]:
         """Look up all incidents associated with email address
            and return status of each"""
-
+        print("THIS RAN")
         user_profile = tracker.get_slot("user_profile")
 
         # Handle anonymous profile. No need to call Snow API.

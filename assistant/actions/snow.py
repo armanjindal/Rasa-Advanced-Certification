@@ -71,7 +71,7 @@ class SnowAPI:
         async with session.get(url) as resp:
             if resp.status != 200:
                 logger.error("Unable to load user profile. Status: %d", resp.status)
-                return anonymous_profile
+                return {"error":"There is a problem with the ServiceNow API and it might be down!"}
             
             resp_json = await resp.json()
             user = resp_json.get("result")            
